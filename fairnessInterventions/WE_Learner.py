@@ -19,25 +19,6 @@ class WeightedEuclideanDistanceLearner():
         self.number_of_attributes = self.data.shape[1]
         self.l1_norm = l1_norm
 
-        #self.indices_info = indices_info
-        self.interval_indices = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]
-        self.ordinal_indices = []
-
-        self.labels_protected_instances = self.labels[np.where(self.protected_info == 0)]
-        self.labels_unprotected_instances = self.labels[np.where(self.protected_info == 1)]
-
-        self.data_protected_instances = self.data[np.where(self.protected_info == 0)]
-        self.data_unprotected_instances = self.data[np.where(self.protected_info == 1)]
-
-        self.prot_same_label, self.prot_diff_label = self.get_squared_diff_vectors_for_instances_with_same_and_different_class_label(
-            self.labels_protected_instances, self.data_protected_instances)
-        print("Done protected group")
-
-        self.unprot_same_label, self.unprot_diff_label = self.get_squared_diff_vectors_for_instances_with_same_and_different_class_label(
-            self.labels_unprotected_instances, self.data_unprotected_instances)
-
-        print("Init done")
-
     # def __init__(self, data, protected_info, labels, indices_info, l1_norm):
     #     self.data = data
     #     self.number_of_attributes = data.shape[1]
@@ -63,10 +44,7 @@ class WeightedEuclideanDistanceLearner():
     def give_squared_abs_difference_vector_between_instances(self, x, y):
         difference_vector = []
         for index in range(0, len(x)):
-            if index in self.interval_indices or index in self.ordinal_indices:
-                difference_vector.append(abs(x[index] - y[index])**2)
-            else:
-                difference_vector.append(x[index] != y[index])
+            difference_vector.append(abs(x[index] - y[index])**2)
         return np.array(difference_vector)
 
 
@@ -84,10 +62,12 @@ class WeightedEuclideanDistanceLearner():
                     same_label_matrix = np.append(same_label_matrix, [abs_difference_vector], axis=0)
         return same_label_matrix, different_label_matrix
 
+
     def calc_weighted_distances(self, weights, difference_matrix):
         distances = np.matmul(difference_matrix, weights)
         square_root_distances = np.sqrt(distances)
         return square_root_distances
+
 
     def objective(self, weights):
         distances_between_protected_with_diff_label = self.calc_weighted_distances(weights, self.prot_diff_label)
@@ -149,6 +129,20 @@ class WeightedEuclideanDistanceLearner():
         return derivative
 
     def solve_objective(self):
+        self.labels_protected_instances = self.labels[np.where(self.protected_info == 0)]
+        self.labels_unprotected_instances = self.labels[np.where(self.protected_info == 1)]
+
+        self.data_protected_instances = self.data[np.where(self.protected_info == 0)]
+        self.data_unprotected_instances = self.data[np.where(self.protected_info == 1)]
+
+        self.prot_same_label, self.prot_diff_label = self.get_squared_diff_vectors_for_instances_with_same_and_different_class_label(
+            self.labels_protected_instances, self.data_protected_instances)
+
+        self.unprot_same_label, self.unprot_diff_label = self.get_squared_diff_vectors_for_instances_with_same_and_different_class_label(
+            self.labels_unprotected_instances, self.data_unprotected_instances)
+
+        print("Init done")
+
         initial_weights = [0.1] * self.number_of_attributes
 
         b = (0.1, float('inf'))

@@ -118,9 +118,9 @@ def favoured_discrimination_condition(data):
     elif(data["FairLabel"] == False) and (data["Pass"] == True):
         return "Favoured"
     elif (data["FairLabel"] == False) and (data["Pass"] == False):
-        return "No Change in Neg Label"
+        return "No Change in Negative Label"
     else:
-        return "No Change in Pos Label"
+        return "No Change in Positive Label"
 
 
 def add_discrimination_favoured_label(fair_data, biased_data):
@@ -175,34 +175,32 @@ def general_statistics_favoured_vs_discriminated(fair_data, biased_data):
     add_discrimination_favoured_label(fair_data, biased_data)
     biased_boys_data = biased_data[biased_data['sex'] == 'M']
     biased_girls_data = biased_data[biased_data['sex'] == 'F']
-    fair_boys_data = fair_data[fair_data['sex'] == 'M']
-    fair_girls_data = fair_data[fair_data['sex'] == 'F']
 
     discriminated_boys = biased_boys_data[biased_boys_data['Discrimination_Label'] == "Discriminated"]
-    actual_pass_boys = fair_boys_data[fair_boys_data['Pass'] == True]
-    actual_pass_boys_ratio = len(actual_pass_boys) / len(fair_boys_data)
-    predicted_pass_boys = biased_boys_data[biased_boys_data['Pass'] == True]
-    predicted_pass_boys_ratio = len(predicted_pass_boys) / len(biased_boys_data)
+    no_change_in_neg_boys = biased_boys_data[biased_boys_data['Discrimination_Label'] == "No Change in Negative Label"]
+    no_change_in_pos_boys = biased_boys_data[biased_boys_data['Discrimination_Label'] == "No Change in Positive Label"]
     favoured_boys = biased_boys_data[biased_boys_data['Discrimination_Label'] == "Favoured"]
-    actual_fail_boys = fair_boys_data[fair_boys_data['Pass'] == False]
 
-    print("False Negative Rate Boys:" + str(len(discriminated_boys) / len(actual_pass_boys)))
-    print("False Positive Rate Boys:" + str(len(favoured_boys)/len(actual_fail_boys)))
+    print("Number of no change in positive labels boys: " + str(len(no_change_in_pos_boys)))
+    print("Number of no change in negative labels boys: " + str(len(no_change_in_neg_boys)))
+    print("Number of favoured boys: " + str(len(favoured_boys)))
+    print("Number of discriminated boys: " + str(len(discriminated_boys)))
 
     discriminated_girls = biased_girls_data[biased_girls_data['Discrimination_Label'] == "Discriminated"]
-    actual_pass_girls = fair_girls_data[fair_girls_data['Pass'] == True]
-    actual_pass_girls_ratio = len(actual_pass_girls)/len(fair_girls_data)
-    predicted_pass_girls = biased_girls_data[biased_girls_data['Pass'] == True]
-    predicted_pass_girls_ratio = len(predicted_pass_girls)/len(biased_girls_data)
+    no_change_in_neg_girls = biased_girls_data[biased_girls_data['Discrimination_Label'] == "No Change in Negative Label"]
+    no_change_in_pos_girls = biased_girls_data[biased_girls_data['Discrimination_Label'] == "No Change in Positive Label"]
     favoured_girls = biased_girls_data[biased_girls_data['Discrimination_Label'] == "Favoured"]
-    actual_fail_girls = fair_girls_data[fair_girls_data['Pass'] == False]
-    predicted_fail_girls = biased_girls_data[biased_girls_data['Pass'] == False]
-    print(len(actual_pass_girls))
-    print(len(predicted_pass_girls))
 
-    print("False Negative Rate Girls:" + str(len(discriminated_girls) / len(actual_pass_girls)))
-    print("False Positive Rate Girls:" + str(len(favoured_girls) / len(actual_fail_girls)))
+    print("Number of no change in positive labels girls: " + str(len(no_change_in_pos_girls)))
+    print("Number of no change in negative labels girls: " + str(len(no_change_in_neg_girls)))
+    print("Number of discriminated girls" + str(len(discriminated_girls)))
+    print("Number of favoured girls: " + str(len(favoured_girls)))
 
-    print("Difference in Positive Decision Label Ratio (Biased Data): " + str(predicted_pass_girls_ratio-predicted_pass_boys_ratio))
-    print("Difference in Positive Decision Label Ratio (Fair Data): " + str(actual_pass_girls_ratio-actual_pass_boys_ratio))
+    boys_actual_pass_ratio = (len(discriminated_boys) + len(no_change_in_pos_boys))/len(biased_boys_data)
+    girls_actual_pass_ratio = (len(discriminated_girls) + len(no_change_in_pos_girls))/len(biased_girls_data)
 
+    boys_biased_pass_ratio = (len(favoured_boys) + len(no_change_in_pos_boys))/ len(biased_boys_data)
+    girls_biased_pass_ratio = (len(favoured_girls) + len(no_change_in_pos_girls)) / len(biased_girls_data)
+
+    print("Difference in Positive Decision Label Ratio (Biased Data): " + str(girls_biased_pass_ratio-boys_biased_pass_ratio))
+    print("Difference in Positive Decision Label Ratio (Fair Data): " + str(girls_actual_pass_ratio-boys_actual_pass_ratio))

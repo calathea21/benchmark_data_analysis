@@ -41,25 +41,5 @@ def add_columns_from_original_data(columns_to_add, qualtrics_data):
     return
 
 
-def train_test_toStandardDataset(X_biased, X_fair, categorical_attributes):
-    X_biased_train, X_biased_test, X_fair_train, X_fair_test = train_test_split(X_biased, X_fair, test_size=0.2, random_state=42)
-
-    portuguese_class_train_data_biased = StandardDataset(X_biased_train, label_name="Pass", favorable_classes=[1],
-                                                         protected_attribute_names=['sex'], privileged_classes=[["F"]],
-                                                         categorical_features=categorical_attributes)
-    portuguese_class_test_data_biased = StandardDataset(X_biased_test, label_name="Pass", favorable_classes=[1],
-                                                  protected_attribute_names=['sex'], privileged_classes=[["F"]],
-                                                  categorical_features=categorical_attributes)
-
-    portuguese_class_train_data_fair = StandardDataset(X_fair_train, label_name="Pass", favorable_classes=[1],
-                                                       protected_attribute_names=['sex'], privileged_classes=[["F"]],
-                                                       categorical_features=categorical_attributes)
-
-    portuguese_class_test_data_fair = StandardDataset(X_fair_test, label_name="Pass", favorable_classes=[1],
-                                                        protected_attribute_names=['sex'], privileged_classes=[["F"]],
-                                                        categorical_features=categorical_attributes)
-
-    return portuguese_class_train_data_biased, portuguese_class_test_data_biased, portuguese_class_train_data_fair, \
-           portuguese_class_test_data_fair
 
 

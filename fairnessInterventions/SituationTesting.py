@@ -2,15 +2,26 @@ import pandas as pd
 from scipy import stats
 from scipy.spatial.distance import pdist, squareform
 import numpy as np
+from fairnessInterventions.WE_Learner import WeightedEuclideanDistanceLearner
+from math import sqrt
 
 class Situation_Testing:
-    def __init__(self, k, threshold):
+    def __init__(self, k, threshold, learn_distance_function=False, lambda_l1_norm=0):
         self.k = k
         self.threshold = threshold
+        self.learn_distance_function = learn_distance_function
+        self.lambda_l1_norm = lambda_l1_norm
 
     def fit(self, X):
         train_data = pd.DataFrame(X.features, columns=X.feature_names)
         train_data = train_data.drop(train_data[X.protected_attribute_names], axis=1)
+
+        if self.learn_distance_function:
+            we_learner = WeightedEuclideanDistanceLearner(X, self.lambda_l1_norm)
+            self.weights = we_learner.solve_objective()
+
+        else:
+            self.weights = np.ones(train_data.shape[1])
 
         sensitive_attribute = X.protected_attributes.ravel()
         labels = X.labels.ravel()
@@ -63,10 +74,19 @@ class Situation_Testing:
             unprotected_neighbours)
         return (proportion_positive_unprotected - proportion_positive_protected)
 
+
     def make_distance_matrix(self, data):
         dists = pdist(data, self.distance)
         distance_matrix = pd.DataFrame(squareform(dists), columns=data.index, index=data.index)
         return distance_matrix
+
+
+    def weighted_euclidean_distance(self, x, y):
+        sum_of_distances = 0
+        for i in range(len(x)):
+            sum_of_distances += self.weights[i] * ((x[i]-y[i])**2)
+        return sqrt(sum_of_distances)
+
 
     def distance(self, x, y):
         sum_of_distances = 0
