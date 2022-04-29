@@ -39,6 +39,7 @@ def test_classifier_on_folds(X_biased, X_fair, categorical_attributes, number_of
     all_performances = []
     for train_index, test_index in kf.split(X_biased):
         biased_data_train, fair_data_train = X_biased.iloc[train_index], X_fair.iloc[train_index]
+        print(biased_data_train['sex'])
         biased_data_test, fair_data_test = X_biased.iloc[test_index], X_fair.iloc[test_index]
 
         biased_data_train = StandardDataset(biased_data_train, label_name="Pass", favorable_classes=[1],
