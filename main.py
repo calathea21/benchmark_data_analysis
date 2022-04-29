@@ -12,7 +12,7 @@ from fairnessInterventions.WE_Learner import WeightedEuclideanDistanceLearner
 if __name__ == '__main__':
     data_with_predictions = load_data_with_biased_and_unbiased_grades()
     #add_columns_from_original_data(["subject"], data_with_predictions)
-    X_biased, X_fair, cat_attributes = preprocess_data(data_with_predictions, change_by_fail_pred=False, one_hot_encoding=False)
+    X_biased, X_fair, cat_attributes = preprocess_data(data_with_predictions, change_by_fail_pred=True, one_hot_encoding=False)
     # fair_data_train = StandardDataset(X_fair, label_name="Pass", favorable_classes=[1],
     #                                     protected_attribute_names=['sex'], privileged_classes=[["F"]],
     #                                     categorical_features=cat_attributes)
@@ -28,7 +28,7 @@ if __name__ == '__main__':
     # distance_learner.solve_objective()
 
     #discrimination_analysis_subgroup_discovery(X_fair, X_biased)
-    test_classifier_on_folds(X_biased, X_fair, cat_attributes, number_of_folds=10, performance_measure="F1")
+    test_classifier_on_folds(X_biased, X_fair, cat_attributes, number_of_folds=10)
     #test_classifier_on_train_test_split(X_biased, X_fair, cat_attributes)
 
 

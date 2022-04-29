@@ -136,7 +136,7 @@ def visualize_test_set_performance_with_confidence_interval(performances, n):
 
 
 def make_scatterplot(performances):
-    performances_plot = (p9.ggplot(performances, p9.aes(x="TPR_diff", y="Accuracy", color="Intervention")) +
+    performances_plot = (p9.ggplot(performances, p9.aes(x="Discrimination Score", y="Accuracy", color="Intervention")) +
                          p9.geom_point(size=4) +
                          p9.geom_errorbar(p9.aes(ymin= performances["lower_accuracy"],
                                                  ymax=performances["upper_accuracy"]), width=0.01, alpha=0.5) +
