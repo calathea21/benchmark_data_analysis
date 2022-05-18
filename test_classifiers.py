@@ -17,6 +17,7 @@ class ClassifierTester():
         self.X_biased_train = X_biased_train
         self.X_biased_test = X_biased_test
 
+
     def evaluation_on_labels(self, test_label_predictions, test_probability_predictions, test_on_fair_set):
         if test_on_fair_set:
             ground_truth_labels = self.X_fair_test.labels.ravel()
@@ -63,7 +64,7 @@ class ClassifierTester():
         labels_X_train = self.X_biased_train.labels.ravel()
 
         performance_unfair_data_dataframe = self.test_all_standard_classifiers(features_X_train, labels_X_train, test_on_fair_test_set)
-        performance_unfair_data_dataframe["Intervention"] = "No Intervention"
+        performance_unfair_data_dataframe["Intervention"] = "Lower Baseline"
         return performance_unfair_data_dataframe
 
 
@@ -73,7 +74,7 @@ class ClassifierTester():
         labels_X_train = self.X_fair_train.labels.ravel()
 
         performance_fair_data_dataframe = self.test_all_standard_classifiers(features_X_train, labels_X_train, test_on_fair_test_set)
-        performance_fair_data_dataframe["Intervention"] = "Trained on fair data"
+        performance_fair_data_dataframe["Intervention"] = "Upper Baseline"
         return performance_fair_data_dataframe
 
 
@@ -88,11 +89,11 @@ class ClassifierTester():
 
         performance_massaging_dataframe = self.test_all_standard_classifiers(features_X_train, labels_X_train, test_on_fair_test_set)
         performance_massaging_dataframe["Intervention"] = "Massaging"
-        return performance_massaging_dataframe
+        return performance_massaging_dataframe, masseuse
 
 
     def test_situation_testing(self, test_on_fair_test_set):
-        st = Situation_Testing(k=10, threshold=0.3)
+        st = Situation_Testing(k=10, threshold=0.3)   #in benchmarking study k=10, threshold=0.3
         st.fit(self.X_biased_train)
 
         preprocessed_X_train = st.transform(self.X_biased_train)
@@ -103,7 +104,7 @@ class ClassifierTester():
 
         performance_situation_testing_dataframe = self.test_all_standard_classifiers(features_X_train, labels_X_train, test_on_fair_test_set)
         performance_situation_testing_dataframe["Intervention"] = "Situation Testing"
-        return performance_situation_testing_dataframe
+        return performance_situation_testing_dataframe, st
 
 
     def test_situation_testing_with_learned_distance(self, test_on_fair_test_set):
@@ -119,6 +120,7 @@ class ClassifierTester():
         performance_situation_testing_dataframe = self.test_all_standard_classifiers(features_X_train, labels_X_train, test_on_fair_test_set)
         performance_situation_testing_dataframe["Intervention"] = "Situation Testing with Learned Distance"
         return performance_situation_testing_dataframe
+
 
     def test_all_standard_classifiers(self, X_train, y_train, test_on_fair_test_set, without_sensitive_attribute=False):
         if without_sensitive_attribute:
@@ -171,14 +173,20 @@ class ClassifierTester():
 
 
     def test_all_algorithms(self, test_on_fair_test_set=True):
-        performance_fairness_through_unawareness = self.test_fairness_through_unawareness(test_on_fair_test_set)
+        #performance_fairness_through_unawareness = self.test_fairness_through_unawareness(test_on_fair_test_set)
         performance_upper_benchmark = self.test_benchmark_fair_classifier(test_on_fair_test_set)
         performance_lower_benchmark = self.test_basic_unfair_classifiers(test_on_fair_test_set)
-        performance_massaging = self.test_massaging(test_on_fair_test_set)
-        performance_situation_testing = self.test_situation_testing(test_on_fair_test_set)
+        performance_massaging, _ = self.test_massaging(test_on_fair_test_set)
+        performance_situation_testing, _ = self.test_situation_testing(test_on_fair_test_set)
         #performance_situation_testing_with_learned_distance = self.test_situation_testing_with_learned_distance(test_on_fair_test_set)
 
-        all_performances_dataframe = pd.concat([performance_lower_benchmark, performance_fairness_through_unawareness, performance_massaging, performance_situation_testing, performance_upper_benchmark])
+        all_performances_dataframe = pd.concat([performance_lower_benchmark, performance_massaging, performance_situation_testing, performance_upper_benchmark])
+
+        all_performances_dataframe = all_performances_dataframe.assign(Intervention = pd.Categorical(all_performances_dataframe['Intervention'], ["Upper Baseline", "Lower Baseline", "Massaging", "Situation Testing"]))
         print(all_performances_dataframe)
         return all_performances_dataframe
+
+
+
+
 

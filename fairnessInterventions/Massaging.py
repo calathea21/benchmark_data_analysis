@@ -3,6 +3,8 @@ from scipy import stats
 from scipy.spatial.distance import pdist, squareform
 from sklearn.linear_model import LogisticRegression
 import numpy as np
+from sklearn.svm import SVC
+
 
 class Massaging:
     def __init__(self):
@@ -85,3 +87,10 @@ class Massaging:
         sorted_probability_labels = self.order_instances(probability_labels_of_negative_class_labels)
         promotion_candidates = sorted_probability_labels.iloc[-M:]
         return promotion_candidates
+
+
+    def get_demotion_candidates(self):
+        return self.demotion_candidates
+
+    def get_promotion_candidates(self):
+        return self.promotion_candidates

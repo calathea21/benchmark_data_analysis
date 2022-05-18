@@ -35,11 +35,13 @@ class Situation_Testing:
 
         distance_matrix = self.make_distance_matrix(train_data)
         self.discriminated_indices = []
+        self.discrimination_scores = []
 
         for i in possibly_discriminated:
             protected_neighbors, unprotected_neighbors = self.find_k_nearest_neighbors(i, distance_matrix, protected_indices, unprotected_indices)
             difference_in_treatement = self.calc_difference(protected_neighbors, unprotected_neighbors, labels)
             if difference_in_treatement >= self.threshold:
+                self.discrimination_scores.append(difference_in_treatement)
                 self.discriminated_indices.append(i)
         return
 
@@ -95,3 +97,10 @@ class Situation_Testing:
             sum_of_distances += abs(x[i]-y[i])
 
         return sum_of_distances
+
+
+    def get_discriminated_instances(self):
+        return self.discriminated_indices
+
+    def get_discrimination_scores_of_discriminated_instances(self):
+        return self.discrimination_scores

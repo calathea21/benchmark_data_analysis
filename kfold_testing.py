@@ -77,8 +77,8 @@ def visualize_mean_performance_and_fairness_measure(all_performances_df, fairnes
     fairness_measure_columns = [col for col in all_performances_df.columns if col.endswith(fairness_measure)]
     number_of_samples = len(performance_measure_columns)
 
-    column_name_performance = "mean_" + performance_measure
-    column_name_fairness = "mean_" + fairness_measure
+    column_name_performance = "Mean " + performance_measure
+    column_name_fairness = "Mean " + fairness_measure
 
     all_performances_df[column_name_performance] = all_performances_df[performance_measure_columns].mean(axis=1)
     all_performances_df[column_name_fairness] = all_performances_df[fairness_measure_columns].mean(axis=1)
@@ -147,10 +147,13 @@ def make_scatterplot(performances):
 
 def make_scatterplot_of_mean_performances(performances, fairness_measure, performance_measure):
     performances_plot = (p9.ggplot(performances, p9.aes(x=fairness_measure, y=performance_measure, color="Intervention")) +
-                         p9.geom_point(size=4) +
+                         p9.geom_point(size=4.5) +
                          p9.geom_errorbar(p9.aes(ymin= performances[performance_measure] - performances["standard_error_performance"],
-                                                 ymax= performances[performance_measure] + performances["standard_error_performance"]), width=0.01, alpha=0.5) +
-                         p9.geom_text(p9.aes(label=performances['classifier']), size=8, color='black', nudge_y=0.005))
+                                                 ymax= performances[performance_measure] + performances["standard_error_performance"]), width=0.015, alpha=0.7) +
+                         p9.theme(legend_position=(0.32, 0.75), legend_direction='vertical',
+                                  legend_text=p9.element_text(size=10.5),
+                                  legend_title=p9.element_blank(), legend_key_size=6, legend_background = p9.element_rect(color="black")) +
+                         p9.geom_text(p9.aes(label=performances['classifier']), size=8.5, color='black', nudge_y=0.005))
     print(performances_plot)
 
 
