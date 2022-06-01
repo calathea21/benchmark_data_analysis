@@ -1,9 +1,11 @@
+'''
+To improve the Situation Testing algorithm, it is possible to learn a distance function from the data, that will be used
+to select the nearest neighbours of possibly discriminated instances. In this class we implement the functions to learn a
+Weighted Euclidean distance as proposed by Lenders & Calders.
+'''
+
 import numpy as np
 from scipy.optimize import minimize
-import scipy.stats
-import pandas as pd
-import math
-from scipy.spatial.distance import pdist, squareform
 
 
 class WeightedEuclideanDistanceLearner():
@@ -19,27 +21,6 @@ class WeightedEuclideanDistanceLearner():
         self.number_of_attributes = self.data.shape[1]
         self.l1_norm = l1_norm
 
-    # def __init__(self, data, protected_info, labels, indices_info, l1_norm):
-    #     self.data = data
-    #     self.number_of_attributes = data.shape[1]
-    #     self.protected_info = protected_info
-    #     self.labels = labels
-    #     self.l1_norm = l1_norm
-    #     self.indices_info = indices_info
-    #     self.interval_indices = self.indices_info['interval']
-    #     self.ordinal_indices = self.indices_info['ordinal']
-    #
-    #     self.labels_protected_instances = self.labels[np.where(self.protected_info == 0)]
-    #     self.labels_unprotected_instances = self.labels[np.where(self.protected_info == 1)]
-    #
-    #     self.data_protected_instances = self.data[np.where(self.protected_info == 0)]
-    #     self.data_unprotected_instances = self.data[np.where(self.protected_info == 1)]
-    #
-    #     self.prot_same_label, self.prot_diff_label = self.get_squared_diff_vectors_for_instances_with_same_and_different_class_label(
-    #         self.labels_protected_instances, self.data_protected_instances)
-    #     self.unprot_same_label, self.unprot_diff_label = self.get_squared_diff_vectors_for_instances_with_same_and_different_class_label(
-    #         self.labels_unprotected_instances, self.data_unprotected_instances)
-    #
 
     def give_squared_abs_difference_vector_between_instances(self, x, y):
         difference_vector = []

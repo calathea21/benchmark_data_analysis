@@ -1,41 +1,34 @@
-from discrimination_analysis import discrimination_analysis_association_rules, discrimination_analysis_decision_tree, discrimination_analysis_subgroup_discovery, general_statistics_favoured_vs_discriminated
-from aif360.metrics import BinaryLabelDatasetMetric, ClassificationMetric
-from sklearn.model_selection import train_test_split
-from aif360.datasets import StandardDataset
+from understanding_bias import discrimination_analysis_subgroup_discovery, general_statistics_favoured_vs_discriminated, understanding_discrimination_labels_in_subgroup_split_by_sex
 from data_preprocessing import preprocess_data, load_data_with_biased_and_unbiased_grades, add_columns_from_original_data, change_by_grade_prediction, change_by_ranking_position
-from test_classifiers import ClassifierTester
-from visualization_performances import scatter_plot_accuracy_vs_difference_in_positive_label
-from kfold_testing import test_classifier_on_folds, test_classifier_on_train_test_split
-from fairnessInterventions.WE_Learner import WeightedEuclideanDistanceLearner
-from error_analysis import test_discrimination_detection_of_intervention_on_folds
+from kfold_testing import test_classifier_on_folds
 
 # Press the green button in the gutter to run the script.
 if __name__ == '__main__':
+    #Data with its biased and unbiased grades is loaded
     data, categorical_attributes = load_data_with_biased_and_unbiased_grades()
-    data, categorical_attributes = add_columns_from_original_data(["G2", "G1"], data, categorical_attributes)
+
+    #Data is preprocessed and split into a fair and biased version. When preprocessing the data, the biased grades are also
+    #turned into binary decision labels, according to the 'ranking strategy' (the labels of lowest two ranked individuals
+    #are always changed to false, the labels of the highest two ranked individuals are always changed to true)
     X_fair, X_biased = preprocess_data(data, False, categorical_attributes, change_by_ranking_position, threshold_rank_fail=7, threshold_rank_pass=2)
-    #
-    # print(X_fair['sex'])
-    # fair_data_train = StandardDataset(X_fair, label_name="Pass", favorable_classes=[1],
-    #                                     protected_attribute_names=['sex'], privileged_classes=[["F"]],
-    #                                     categorical_features=categorical_attributes)
-    # privileged_groups = [{'sex': 1}]  # girls
-    # unprivileged_groups = [{'sex': 0}]  # boys
-    # metric = BinaryLabelDatasetMetric(fair_data_train, privileged_groups=privileged_groups, unprivileged_groups=unprivileged_groups)
-    # print(metric.base_rate(privileged=True))
-    # print(metric.base_rate(privileged=False))
-    # print(metric.base_rate())
-    # print(metric.difference())
-    # print(biased_data_train.feature_names)
-    # distance_learner = WeightedEuclideanDistanceLearner(biased_data_train, 0.01)
-    # distance_learner.solve_objective()
 
-    test_classifier_on_folds(X_biased, X_fair, categorical_attributes, number_of_folds=10, fairness_measure="Discrimination Score", performance_measure="Accuracy")
-    #test_classifier_on_train_test_split(X_biased, X_fair, categorical_attributes)
-    #test_discrimination_detection_of_intervention_on_folds(X_biased, X_fair, categorical_attributes)
+    #general statistics about how biased data relates to fair data are printed
+    general_statistics_favoured_vs_discriminated(X_fair, X_biased)
+
+    #understanding discrimination for specific subgroups
+    subgroup_1 = {'studytime': 1}
+    subgroup_2 = {'studytime': 1, 'romantic': 'no'}
+    subgroup_3 = {'Walc': 4}
+
+    #generating plot for discrimination-label distribution (split by sex) for subgroup of students with very high alcohol consumption
+    understanding_discrimination_labels_in_subgroup_split_by_sex(X_fair, X_biased,
+                                                                 subgroup_3, "alcohol consumption: very high")
 
 
 
+    #experiment to test effectiveness of fairness interventions on fair version of the labels using 10-fold cross validation
+    test_classifier_on_folds(X_biased, X_fair, categorical_attributes, number_of_folds=10, test_on_fair_test_set = True, fairness_measure="Discrimination Score", performance_measure="Accuracy", title = "Tested on fair labels")
 
+    # experiment to test effectiveness of fairness interventions on biased version of the labels using 10-fold cross validation
+    test_classifier_on_folds(X_biased, X_fair, categorical_attributes, number_of_folds=10, test_on_fair_test_set = False, fairness_measure="Discrimination Score", performance_measure="Accuracy", title = "Tested on biased labels")
 
-# See PyCharm help at https://www.jetbrains.com/help/pycharm/

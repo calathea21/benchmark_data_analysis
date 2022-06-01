@@ -1,3 +1,12 @@
+'''
+Class implementing the Situation Testing algorithm as proposed by Luong et al. This is a bias mitigation algorithm,
+which works by detecting discrimination in the training data, such that it can be removed and a classifier can be trained
+on a debiased version of it. Discirmination detection works, by going through all protected instances with a negative
+decision label, and comparing their label to their nearest unprotected neighbours. If a high portion of the unprotected
+neighbors received a positive label, the protected instance is marked as discriminated and its label will be changed to
+positive.
+'''
+
 import pandas as pd
 from scipy import stats
 from scipy.spatial.distance import pdist, squareform
@@ -31,7 +40,6 @@ class Situation_Testing:
 
         non_positive_labels = np.where(labels==0)[0]
         possibly_discriminated = set(protected_indices).intersection(set(non_positive_labels))
-        print("Number of possibly discriminated: " + str(len(possibly_discriminated)))
 
         distance_matrix = self.make_distance_matrix(train_data)
         self.discriminated_indices = []
@@ -47,7 +55,6 @@ class Situation_Testing:
 
 
     def transform(self, X):
-        print("Number of actually discriminated: " + str(len(self.discriminated_indices)) )
         transformed_data = X.copy(deepcopy=True)
         new_class_labels = X.labels.copy()
         np.put(new_class_labels, self.discriminated_indices, 1)

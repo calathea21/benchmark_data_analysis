@@ -17,7 +17,6 @@ class ClassifierTester():
         self.X_biased_train = X_biased_train
         self.X_biased_test = X_biased_test
 
-
     def evaluation_on_labels(self, test_label_predictions, test_probability_predictions, test_on_fair_set):
         if test_on_fair_set:
             ground_truth_labels = self.X_fair_test.labels.ravel()

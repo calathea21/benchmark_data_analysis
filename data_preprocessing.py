@@ -10,6 +10,7 @@ def load_data_with_biased_and_unbiased_grades():
     categorical_attributes = ["romantic", "reason"]
     return data, categorical_attributes
 
+
 def change_by_grade_prediction(data, threshold_grade):
     data["Predicted_Pass"] = data["PredictedGrade"] >= threshold_grade
     return

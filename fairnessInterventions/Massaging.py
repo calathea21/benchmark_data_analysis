@@ -1,9 +1,13 @@
+'''
+Implementation of the Massaging algorithm as proposed by Kamiran & Calders. This is a pre-processing fairness intervention,
+where bias is removed from the data, such that a classifier can be trained on a fair dataset from the beginning.
+To detect the bias, a classifier is learned on the training data and the predicted label probabilities are observed
+for each instances: negative labels of protected instances, that lay close to the decision boundary, are changed to positive,
+while the opposite is done to the positive labels of unprotected instances close to the decision boundary.
+'''
 import pandas as pd
-from scipy import stats
-from scipy.spatial.distance import pdist, squareform
 from sklearn.linear_model import LogisticRegression
 import numpy as np
-from sklearn.svm import SVC
 
 
 class Massaging:

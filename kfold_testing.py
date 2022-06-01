@@ -29,11 +29,11 @@ def test_classifier_on_train_test_split(X_biased, X_fair, categorical_attributes
 
     tester = ClassifierTester(fair_data_train, fair_data_test, biased_data_train, biased_data_test)
     performances = tester.test_all_algorithms(test_on_fair_test_set)
-    number_of_test_samples = len(X_fair_test)
-    visualize_test_set_performance_with_confidence_interval(performances, number_of_test_samples)
+    performances['classifier'] = performances.index
+    make_scatterplot_for_test_set_performance(performances)
 
 
-def test_classifier_on_folds(X_biased, X_fair, categorical_attributes, number_of_folds, test_on_fair_test_set=True, fairness_measure="Discrimination Score", performance_measure="Accuracy"):
+def test_classifier_on_folds(X_biased, X_fair, categorical_attributes, number_of_folds, test_on_fair_test_set=True, fairness_measure="Discrimination Score", performance_measure="Accuracy", title=None):
     kf = KFold(n_splits=number_of_folds, shuffle=True)
     fold_number = 0
     all_performances = []
@@ -65,11 +65,12 @@ def test_classifier_on_folds(X_biased, X_fair, categorical_attributes, number_of
         fold_number+=1
 
     all_performances_df = pd.concat(all_performances, axis=1)
-    print(all_performances_df)
-    visualize_mean_performance_and_fairness_measure(all_performances_df, fairness_measure, performance_measure)
+    all_performances_df = prepare_to_visualize_mean_performance_and_fairness_measure(all_performances_df, fairness_measure,
+                                                               performance_measure)
+    make_scatterplot_of_mean_performances_over_folds(all_performances_df, "Mean " + fairness_measure, "Mean " + performance_measure, title)
 
 
-def visualize_mean_performance_and_fairness_measure(all_performances_df, fairness_measure, performance_measure):
+def prepare_to_visualize_mean_performance_and_fairness_measure(all_performances_df, fairness_measure, performance_measure):
     all_intervention_columns = [col for col in all_performances_df.columns if col.endswith('Intervention')]
     all_performances_df['Intervention'] = all_performances_df[all_intervention_columns[0]]
     all_performances_df = all_performances_df.drop(all_intervention_columns, axis=1)
@@ -88,55 +89,9 @@ def visualize_mean_performance_and_fairness_measure(all_performances_df, fairnes
 
     all_performances_df['classifier'] = all_performances_df.index
 
-    make_scatterplot_of_mean_performances(all_performances_df, column_name_fairness, column_name_performance)
+    return all_performances_df
 
-
-def visualize_all_performances_kfold(all_performances_df):
-    all_intervention_columns = [col for col in all_performances_df.columns if col.endswith('Intervention')]
-    all_performances_df['Intervention'] = all_performances_df[all_intervention_columns[0]]
-    all_performances_df = all_performances_df.drop(all_intervention_columns, axis=1)
-    accuracy_columns = [col for col in all_performances_df.columns if col.endswith('Accuracy')]
-    discrimination_score_columns = [col for col in all_performances_df.columns if col.endswith('Discrimination Score')]
-
-    all_performances_df['min_accuracy'] = all_performances_df[accuracy_columns].min(axis=1)
-    all_performances_df['min_discrimination_score'] = all_performances_df[discrimination_score_columns].min(axis=1)
-    all_performances_df['max_accuracy'] = all_performances_df[accuracy_columns].max(axis=1)
-    all_performances_df['max_discrimination_score'] = all_performances_df[discrimination_score_columns].max(axis=1)
-    all_performances_df['mean_accuracy'] = all_performances_df[accuracy_columns].mean(axis=1)
-    all_performances_df['mean_discrimination_score'] = all_performances_df[discrimination_score_columns].mean(axis=1)
-
-    all_performances_df['classifier'] = all_performances_df.index
-
-    plot_rectangles(all_performances_df)
-
-
-
-def plot_rectangles(performances):
-    performances_plot = (p9.ggplot() +
-                         p9.geom_rect(data=performances,
-                                      mapping=p9.aes(xmin='min_accuracy', xmax='max_accuracy',
-                                                    ymin='min_discrimination_score', ymax='max_discrimination_score',
-                                                    fill='Intervention'), color="black", alpha=0.5) +
-                         p9.geom_text(data=performances,
-                                      mapping=p9.aes(x=performances['min_accuracy']+(performances['max_accuracy']-performances['min_accuracy'])/2,
-                                                    y=performances['min_discrimination_score']+(performances['max_discrimination_score']-performances['min_discrimination_score'])/2,
-                                                     label='classifier'), size=8) +
-                         p9.ggtitle("Accuracy and Discrimination Scores of Fairness Intervention Algorithms"))
-
-    print(performances_plot)
-
-
-def visualize_test_set_performance_with_confidence_interval(performances, n):
-    performances['classifier'] = performances.index
-    performances['accuracy_confidence'] = ((performances["Accuracy"] * (1 - performances["Accuracy"]))/n)**(1/2) * 1.96
-    performances['upper_accuracy'] = performances["Accuracy"] + performances["accuracy_confidence"]
-    performances['lower_accuracy'] = performances["Accuracy"] - performances["accuracy_confidence"]
-
-    make_scatterplot(performances)
-    return
-
-
-def make_scatterplot(performances):
+def make_scatterplot_for_test_set_performance(performances):
     performances_plot = (p9.ggplot(performances, p9.aes(x="Discrimination Score", y="Accuracy", color="Intervention")) +
                          p9.geom_point(size=4) +
                          p9.geom_errorbar(p9.aes(ymin= performances["lower_accuracy"],
@@ -145,17 +100,18 @@ def make_scatterplot(performances):
     print(performances_plot)
 
 
-def make_scatterplot_of_mean_performances(performances, fairness_measure, performance_measure):
-    performances_plot = (p9.ggplot(performances, p9.aes(x=fairness_measure, y=performance_measure, color="Intervention")) +
-                         p9.geom_point(size=4.5) +
+def make_scatterplot_of_mean_performances_over_folds(performances, fairness_measure, performance_measure, title):
+    performances_plot = (p9.ggplot(performances, p9.aes(x=fairness_measure, y=performance_measure, color="Intervention")) + \
+                         p9.geom_point(size=4.5) + \
                          p9.geom_errorbar(p9.aes(ymin= performances[performance_measure] - performances["standard_error_performance"],
-                                                 ymax= performances[performance_measure] + performances["standard_error_performance"]), width=0.015, alpha=0.7) +
+                                                 ymax= performances[performance_measure] + performances["standard_error_performance"]), width=0.015, alpha=0.7) + \
                          p9.theme(legend_position=(0.32, 0.75), legend_direction='vertical',
-                                  legend_text=p9.element_text(size=10.5),
-                                  legend_title=p9.element_blank(), legend_key_size=6, legend_background = p9.element_rect(color="black")) +
-                         p9.geom_text(p9.aes(label=performances['classifier']), size=8.5, color='black', nudge_y=0.005))
+                                  legend_text=p9.element_text(size=12),
+                                  legend_title=p9.element_blank(), legend_key_size=6.5, legend_background = p9.element_rect(color="black"),
+                                  plot_title=p9.element_text(size=15.5), axis_text_y=p9.element_text(size=12), axis_text_x=p9.element_text(size=12),
+                                  axis_title_y=p9.element_text(size=13.5), axis_title_x=p9.element_text(size=13.5)) + \
+                         p9.scale_color_manual(values=["#6CAE75", "#B4656F", "#DDA448", "#3F88C5"]) +
+                         p9.geom_text(p9.aes(label=performances['classifier']), size=9.5, color='black', nudge_y=0.005) +\
+                         p9.labs(title = title) )
     print(performances_plot)
-
-
-
     #p9.geom_errorbarh(p9.aes(xmin=performances[fairness_measure] - performances["standard_error_fairness"],xmax=performances[fairness_measure] + performances["standard_error_fairness"]), height=0.01, alpha=0.5)
